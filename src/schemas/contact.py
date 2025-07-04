@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, Field
 from datetime import date
 import re
 
@@ -9,6 +9,7 @@ class ContactModel(BaseModel):
     phone_number: str
     date_of_birth: date
     additional_info: str | None = None
+    user_id: int = Field(1, gt=0)
 
     @field_validator("phone_number")
     def validate_phone_number(cls, v):

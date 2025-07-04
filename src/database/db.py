@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+from src.config.config import settings
 
-url = "postgresql://postgres:contactpassword2025@localhost:5432/postgres"
+url = settings.DB_URL
 
 engine = create_engine(url, echo=False)
 DBSession = sessionmaker(bind=engine)

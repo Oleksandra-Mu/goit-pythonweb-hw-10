@@ -1,14 +1,34 @@
 import time
 
 from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
+from contextlib import asynccontextmanager
 from src.database.db import get_db, engine, Base
-from src.routes import contacts
+from src.routes import contacts, users, auth
 
-app = FastAPI()
-Base.metadata.create_all(bind=engine)
+
+@asynccontextmanager
+async def lifespan(fastapi_app: FastAPI):
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Error creating tables: {e}")
+    yield
+    print("Application shutting down")
+
+
+app = FastAPI(lifespan=lifespan)
+
+origins = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.middleware("http")
@@ -20,7 +40,7 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
-@app.get("/", name="Корінь проекту")
+@app.get("/", name="Project Root")
 def read_root():
     return {"message": "REST APP v1.2"}
 
@@ -46,3 +66,5 @@ def healthchecker(db: Session = Depends(get_db)):
 
 
 app.include_router(contacts.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
